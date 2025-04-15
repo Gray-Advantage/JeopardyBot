@@ -9,7 +9,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 import app
-from app.app.app import app as application, setup_app
+from app.app import app as application, setup_app
 from app.core.database.sqlalchemy_base import BaseModel
 
 setup_app()

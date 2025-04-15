@@ -6,9 +6,9 @@ from app.core.store import Store, setup_store
 
 
 class Application(AiohttpApplication):
-    database: Database | None = None
-    config: Config | None = None
-    store: Store | None = None
+    database: Database
+    config: Config
+    store: Store
 
 
 app = Application()
