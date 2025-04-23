@@ -33,6 +33,7 @@ dependencies = [
     "webargs==8.6.0",
     "yarl==1.19.0",
     "aio-pika==9.5.5",
+    "aiofiles>=24.1.0",
 ]
 
 [dependency-groups]
@@ -97,6 +98,7 @@ extend-ignore = [
     "D1",
     "CPY001",
     "SIM117",
+    "SIM114",
     # По рекомендации https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",

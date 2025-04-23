@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import (
@@ -18,12 +18,11 @@ if TYPE_CHECKING:
 class Database:
     def __init__(self, app: "Application") -> None:
         self.app = app
-
         self.engine: AsyncEngine | None = None
         self._db: type[DeclarativeBase] = BaseModel
         self.session: async_sessionmaker[AsyncSession] | None = None
 
-    async def connect(self, *args: Any, **kwargs: Any) -> None:
+    def connect(self) -> None:
         if self.app.config is None or self.app.config.database is None:
             raise ValueError("Configuration or Database is not properly initialized.")
 
@@ -39,12 +38,16 @@ class Database:
             echo=True,
             future=True,
         )
-        self.session = async_sessionmaker(self.engine, expire_on_commit=False)
+        self.session = async_sessionmaker(
+            self.engine,
+            autoflush=False,
+            autocommit=False,
+            expire_on_commit=False,
+        )
 
-    async def disconnect(self, *args: Any, **kwargs: Any) -> None:
+    async def disconnect(self) -> None:
         if self.engine is None:
             raise ValueError("Engine is not properly initialized.")
-
         await self.engine.dispose()
 
 

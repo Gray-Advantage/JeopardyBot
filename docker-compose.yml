@@ -46,3 +46,16 @@ services:
     env_file:
       - .env
     restart: always
+
+#  worker:
+#    build:
+#      context: .
+#      dockerfile: app/bot/Dockerfile
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      rabbitmq:
+#        condition: service_healthy
+#    env_file:
+#      - .env
+#    restart: always

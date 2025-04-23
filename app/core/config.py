@@ -9,8 +9,17 @@ if typing.TYPE_CHECKING:
     from app.app import Application
 
 
+class SessionConfig(BaseModel):
+    key: str
+
+
 class BotConfig(BaseModel):
     token: str = "..."
+
+
+class AdminConfig(BaseSettings):
+    login: str = "admin"
+    password: str = "admin"
 
 
 class DatabaseConfig(BaseModel):
@@ -46,6 +55,8 @@ class RabbitmqConfig(BaseModel):
 
 
 class Config(BaseSettings):
+    session: SessionConfig
+    admin: AdminConfig
     bot: BotConfig
     database: DatabaseConfig
     rabbitmq: RabbitmqConfig

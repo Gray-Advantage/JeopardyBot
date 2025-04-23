@@ -8,8 +8,7 @@ from app.app import app, setup_app
 from app.core.manager import RabbitMQManager
 
 
-async def get_updates(offset: int) -> dict[str, Any]:
-    url = f"https://api.telegram.org/bot{app.config.bot.token}/getUpdates"  # поменяю
+async def get_updates(url: str, offset: int) -> dict[str, Any]:
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params={"offset": offset, "timeout": 30}) as resp:
             return cast(dict[str, Any], await resp.json())
@@ -24,11 +23,12 @@ async def poll_and_push() -> None:
 
     offset = 0
     while True:
-        data = await get_updates(offset)
+        data = await get_updates(app.bot_api.build_method_url("getUpdates"), offset)
         for update in data.get("result", []):
             offset = update["update_id"] + 1
             await rabbit.send(json.dumps(update).encode())
 
 
-setup_app()
-asyncio.run(poll_and_push())
+if __name__ == "__main__":
+    setup_app()
+    asyncio.run(poll_and_push())

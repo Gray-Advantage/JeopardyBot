@@ -18,6 +18,10 @@ class RabbitMQManager:
         self._channel = await self._connection.channel()
         self._queue = await self._channel.declare_queue(self._queue_name, durable=True)
 
+    async def close(self) -> None:
+        if self._connection:
+            await self._connection.close()
+
     async def send(self, body: bytes) -> None:
         if self._channel is None:
             raise RuntimeError("RabbitMQManager is not connected")
@@ -33,7 +37,3 @@ class RabbitMQManager:
         if self._queue is None:
             raise RuntimeError("RabbitMQManager is not connected")
         await self._queue.consume(handler)
-
-    async def close(self) -> None:
-        if self._connection:
-            await self._connection.close()
