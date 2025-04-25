@@ -45,5 +45,5 @@ jobs:
         script: |
           cd jeopardybot
           git pull
-          docker-compose -f prod.docker-compose.yml pull
-          docker-compose -f prod.docker-compose.yml up -d
+          docker compose -f prod.docker-compose.yml pull
+          docker compose -f prod.docker-compose.yml up --build --scale bot=3 -d
