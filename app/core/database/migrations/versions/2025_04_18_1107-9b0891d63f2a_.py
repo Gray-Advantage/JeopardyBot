@@ -84,7 +84,12 @@ def upgrade() -> None:
         sa.Column("question_id", sa.BigInteger(), nullable=False),
         sa.Column(
             "status",
-            sa.Enum("NOT_ANSWERED", "ANSWERED", "WAIT_ANSWERED", name="answerstatusenum"),
+            sa.Enum(
+                "NOT_ANSWERED",
+                "ANSWERED",
+                "WAIT_ANSWERED",
+                name="answerstatusenum",
+            ),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -104,7 +109,9 @@ def upgrade() -> None:
         sa.Column("round_id", sa.BigInteger(), nullable=False),
         sa.Column(
             "state",
-            sa.Enum("NOT_ANSWERED", "ANSWERED", "WAIT_ANSWERED", name="answerstatusenum"),
+            sa.Enum(
+                "NOT_ANSWERED", "ANSWERED", "WAIT_ANSWERED", name="answerstatusenum"
+            ),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(

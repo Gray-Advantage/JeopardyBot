@@ -20,7 +20,9 @@ depends_on: str | Sequence[str] | None = None
 def upgrade():
     op.drop_constraint("pk_question_to_theme", "question_to_theme", type_="primary")
     op.create_primary_key(
-        "pk_question_to_theme", "question_to_theme", ["round_id", "theme_id", "question_id"]
+        "pk_question_to_theme",
+        "question_to_theme",
+        ["round_id", "theme_id", "question_id"],
     )
 
 

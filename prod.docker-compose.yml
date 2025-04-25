@@ -51,6 +51,19 @@ services:
       - .env
     restart: always
 
+  sender:
+    image: grayadvantage/jeopardy-sender:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    restart: always
+
   bot:
     image: grayadvantage/jeopardy-bot:latest
     depends_on:

@@ -31,6 +31,11 @@ jobs:
         docker build -t ${{ secrets.DOCKER_USERNAME }}/jeopardy-poller:latest -f app/poller/Dockerfile .
         docker push ${{ secrets.DOCKER_USERNAME }}/jeopardy-poller:latest
 
+    - name: Build and Push sender
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/jeopardy-sender:latest -f app/sender/Dockerfile .
+        docker push ${{ secrets.DOCKER_USERNAME }}/jeopardy-sender:latest
+
     - name: Build and Push migrator
       run: |
         docker build -t ${{ secrets.DOCKER_USERNAME }}/jeopardy-migrator:latest -f app/admin/Dockerfile .

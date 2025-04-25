@@ -64,6 +64,39 @@ async def generate_question_keyboard(
         )
 
 
+@bot.connect_handler(commands=["rule"])
+async def rule(message: Message) -> None:
+    await bot.send_message(
+        message.chat,
+        "Основной цикл игры:\n"
+        "- Ведущий через команду /start создаёт лобби (одно на чат)\n"
+        "- Любой желающий может присоединится к игре\n"
+        "- Ведущий запускает игру\n"
+        "- Случайный игрок становится выбирающий\n"
+        "- После выбора вопроса, любой игрок может ответить на вопрос\n"
+        "- Ответ отправляется ведущему на валидацию\n"
+        "- Если человек ответил правильно — плюс баллы, нет — минус баллы и переход "
+        "ответа к другому игроку\n"
+        "- Если никто не ответил правильно выводится правильный ответ, а выбирающий "
+        "снова выбирает тему\n"
+        " После открытия всех вопросов происходит подводится общий итог\n"
+    )
+
+
+@bot.connect_handler(commands=["info"])
+async def info(message: Message) -> None:
+    user = await app.accessors.user_accessor.get_or_create(message.from_)
+    await bot.send_message(
+        message.chat,
+        "Статистика на игрока:\n"
+        "\n"
+        f"Общий счёт за все игры: {user.score}\n"
+        f"Кол-во побед: {user.win_count}\n"
+        f"Кол-во поражений: {user.loss_count}\n",
+        reply_to_message_id=message.message_id,
+    )
+
+
 async def summarize_the_results(chat: Chat, game_id: int) -> None:
     profiles = await app.accessors.game_accessor.all_profiles(game_id)
 
@@ -188,158 +221,166 @@ async def connect_handler(call: CallbackQuery) -> None:
 async def choice_button(call: CallbackQuery) -> None:
     if call.data.startswith("answered"):
         await bot.answer_callback_query(call)
-        return
-
-    if call.data.startswith("btn_choice"):
-        game = await app.accessors.game_accessor.get_active_game(call.message.chat)
-        round_id, question_id = map(int, call.data.split(":")[1:])
-
-        if game.choice_user_id != call.from_.id:
-            await bot.answer_callback_query(
-                call,
-                "Не ты выбираешь тему!",
-                show_alert=True,
-            )
-            return
-
-        await app.accessors.game_accessor.generate_users_answer_status(
-            call.message.chat,
-            question_id,
-            round_id,
-        )
-        qst = await app.accessors.game_accessor.get_question_by_id(question_id)
-        await bot.edit_message_text(
-            call.message.chat.id,
-            call.message.message_id,
-            f"Окей, игрок @{call.from_.username}, выбрал вопрос:\n\n{qst.text}",
-            keyboard=[
-                [("Ответить", f"btn_answer:{round_id}:{question_id}")],
-            ],
-        )
+    elif call.data.startswith("btn_choice"):
+        await handle_btn_choice(call)
     elif call.data.startswith("btn_answer"):
-        round_id, question_id = map(int, call.data.split(":")[1:])
-        game = await app.accessors.game_accessor.get_active_game(call.message.chat)
-
-        if game.master_id == call.from_.id:
-            await bot.answer_callback_query(
-                call,
-                "Ты ведущий! Помни об этом",
-                show_alert=True,
-            )
-
-        if await app.accessors.game_accessor.has_answer(
-            call.from_.id,
-            round_id,
-            question_id,
-        ):
-            await bot.answer_callback_query(call, "Ты уже ответил!", show_alert=True)
-            return
-
-        await app.accessors.game_accessor.set_active_user(
-            call.message.chat,
-            call.from_,
-            call.from_.id,
-            question_id,
-            round_id,
-        )
-        qst = await app.accessors.game_accessor.get_question_by_id(question_id)
-        await bot.edit_message_text(
-            call.message.chat.id,
-            call.message.message_id,
-            f"Отвечает @{call.from_.username}\n"
-            "\n"
-            f"{qst.text}\n"
-            "\n"
-            "Следующие ваше сообщение будет считаться ответом",
-        )
+        await handle_btn_answer(call)
     else:
-        result, user_id, game_id, reply, question_id = call.data.split(":")
-        user_id, game_id, reply, question_id = list(
-            map(int, [user_id, game_id, reply, question_id])
-        )
-        game = await app.accessors.game_accessor.get_by_id(game_id)
-        round_ = await app.accessors.game_accessor.get_current_round(
-            Chat(id=game.chat_id),
-        )
-        user = await app.accessors.user_accessor.get_by_id(user_id)
-        qst = await app.accessors.game_accessor.get_question_by_user_round(
-            user_id,
-            question_id,
-            round_,
-        )
-        score = qst.hard_level * round_.base_score
-
-        await bot.edit_message_text(
-            call.message.chat.id,
-            call.message.message_id,
-            call.message.text,
-        )
-
-        if result == "correct":
-            await app.accessors.game_accessor.add_score(user_id, game_id, score)
-            await bot.send_message(
-                Chat(id=game.chat_id),
-                f"Иии.. ваш ответ верен!\n+ {score} очков",
-                reply_to_message_id=reply,
-            )
-            await app.accessors.game_accessor.set_choice_user(
-                Chat(id=game.chat_id), user
-            )
-            await app.accessors.game_accessor.set_active_user_null(
-                Chat(id=game.chat_id),
-            )
-
-            if await app.accessors.game_accessor.has_questions(round_):
-                await generate_question_keyboard(Chat(id=game.chat_id), user)
-            else:
-                next_ = await app.accessors.game_accessor.next_round(
-                    Chat(id=game.chat_id),
-                )
-                if next_ is False:
-                    await summarize_the_results(Chat(id=game.chat_id), game_id)
-                    return
-        else:
-            await app.accessors.game_accessor.add_score(user_id, game_id, -score)
-            await bot.send_message(
-                Chat(id=game.chat_id),
-                f"Иии.. увы, ваш ответ неверен!\n- {score} очков",
-                reply_to_message_id=reply,
-            )
-            await app.accessors.game_accessor.set_active_user_null(
-                Chat(id=game.chat_id),
-            )
-            if await app.accessors.game_accessor.has_user_not_answered(
-                round_.id,
-                question_id,
-            ):
-                await bot.send_message(
-                    Chat(id=game.chat_id),
-                    f"Может кто-то другой ответит на вопрос?:\n\n{qst.text}",
-                    keyboard=[
-                        [("Ответить", f"btn_answer:{round_.id}:{question_id}")],
-                    ],
-                )
-                return
-
-            await bot.send_message(
-                Chat(id=game.chat_id),
-                "Пу пу пу, никто не ответил, правильно\n"
-                "\n"
-                "А правильный ответ был\n"
-                f"{qst.answer}",
-            )
-
-            if await app.accessors.game_accessor.has_questions(round_):
-                await generate_question_keyboard(Chat(id=game.chat_id), user)
-            else:
-                next_ = await app.accessors.game_accessor.next_round(
-                    Chat(id=game.chat_id),
-                )
-                if next_ is False:
-                    await summarize_the_results(Chat(id=game.chat_id), game_id)
-                    return
+        await handle_result_callback(call)
 
     await bot.answer_callback_query(call)
+
+
+async def handle_btn_choice(call: CallbackQuery) -> None:
+    game = await app.accessors.game_accessor.get_active_game(call.message.chat)
+    round_id, question_id = map(int, call.data.split(":")[1:])
+
+    if game.choice_user_id != call.from_.id:
+        await bot.answer_callback_query(
+            call,
+            "Не ты выбираешь тему!",
+            show_alert=True,
+        )
+        return
+
+    await app.accessors.game_accessor.generate_users_answer_status(
+        call.message.chat,
+        question_id,
+        round_id,
+    )
+    qst = await app.accessors.game_accessor.get_question_by_id(question_id)
+    await bot.edit_message_text(
+        call.message.chat.id,
+        call.message.message_id,
+        f"Окей, игрок @{call.from_.username}, выбрал вопрос:\n\n{qst.text}",
+        keyboard=[
+            [("Ответить", f"btn_answer:{round_id}:{question_id}")],
+        ],
+    )
+
+
+async def handle_btn_answer(call: CallbackQuery) -> None:
+    round_id, question_id = map(int, call.data.split(":")[1:])
+    game = await app.accessors.game_accessor.get_active_game(call.message.chat)
+
+    if game.master_id == call.from_.id:
+        await bot.answer_callback_query(
+            call,
+            "Ты ведущий! Помни об этом",
+            show_alert=True,
+        )
+
+    if await app.accessors.game_accessor.has_answer(
+        call.from_.id,
+        round_id,
+        question_id,
+    ):
+        await bot.answer_callback_query(call, "Ты уже ответил!", show_alert=True)
+        return
+
+    await app.accessors.game_accessor.set_active_user(
+        call.message.chat,
+        call.from_,
+        call.from_.id,
+        question_id,
+        round_id,
+    )
+    qst = await app.accessors.game_accessor.get_question_by_id(question_id)
+    await bot.edit_message_text(
+        call.message.chat.id,
+        call.message.message_id,
+        f"Отвечает @{call.from_.username}\n"
+        "\n"
+        f"{qst.text}\n"
+        "\n"
+        "Следующие ваше сообщение будет считаться ответом",
+    )
+
+
+async def handle_result_callback(call: CallbackQuery) -> None:
+    result, user_id, game_id, reply, question_id = call.data.split(":")
+    user_id, game_id, reply, question_id = list(
+        map(int, [user_id, game_id, reply, question_id])
+    )
+    game = await app.accessors.game_accessor.get_by_id(game_id)
+    round_ = await app.accessors.game_accessor.get_current_round(
+        Chat(id=game.chat_id),
+    )
+    user = await app.accessors.user_accessor.get_by_id(user_id)
+    qst = await app.accessors.game_accessor.get_question_by_user_round(
+        user_id,
+        question_id,
+        round_,
+    )
+    score = qst.hard_level * round_.base_score
+
+    await bot.edit_message_text(
+        call.message.chat.id,
+        call.message.message_id,
+        call.message.text,
+    )
+
+    if result == "correct":
+        await app.accessors.game_accessor.add_score(user_id, game_id, score)
+        await bot.send_message(
+            Chat(id=game.chat_id),
+            f"Иии.. ваш ответ верен!\n+ {score} очков",
+            reply_to_message_id=reply,
+        )
+        await app.accessors.game_accessor.set_choice_user(
+            Chat(id=game.chat_id), user
+        )
+        await app.accessors.game_accessor.set_active_user_null(
+            Chat(id=game.chat_id),
+        )
+
+        if await app.accessors.game_accessor.has_questions(round_):
+            await generate_question_keyboard(Chat(id=game.chat_id), user)
+        else:
+            next_ = await app.accessors.game_accessor.next_round(
+                Chat(id=game.chat_id),
+            )
+            if next_ is False:
+                await summarize_the_results(Chat(id=game.chat_id), game_id)
+    else:
+        await app.accessors.game_accessor.add_score(user_id, game_id, -score)
+        await bot.send_message(
+            Chat(id=game.chat_id),
+            f"Иии.. увы, ваш ответ неверен!\n- {score} очков",
+            reply_to_message_id=reply,
+        )
+        await app.accessors.game_accessor.set_active_user_null(
+            Chat(id=game.chat_id),
+        )
+        if await app.accessors.game_accessor.has_user_not_answered(
+            round_.id,
+            question_id,
+        ):
+            await bot.send_message(
+                Chat(id=game.chat_id),
+                f"Может кто-то другой ответит на вопрос?:\n\n{qst.text}",
+                keyboard=[
+                    [("Ответить", f"btn_answer:{round_.id}:{question_id}")],
+                ],
+            )
+            return
+
+        await bot.send_message(
+            Chat(id=game.chat_id),
+            "Пу пу пу, никто не ответил, правильно\n"
+            "\n"
+            "А правильный ответ был\n"
+            f"{qst.answer}",
+        )
+
+        if await app.accessors.game_accessor.has_questions(round_):
+            await generate_question_keyboard(Chat(id=game.chat_id), user)
+        else:
+            next_ = await app.accessors.game_accessor.next_round(
+                Chat(id=game.chat_id),
+            )
+            if next_ is False:
+                await summarize_the_results(Chat(id=game.chat_id), game_id)
 
 
 @bot.connect_handler()

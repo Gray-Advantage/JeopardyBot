@@ -99,6 +99,10 @@ extend-ignore = [
     "CPY001",
     "SIM117",
     "SIM114",
+    "PLR6301",
+    "RUF001",
+    "C901",
+    "PLR0915",
     # По рекомендации https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",

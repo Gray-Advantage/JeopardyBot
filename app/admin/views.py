@@ -1,6 +1,5 @@
 from http import HTTPStatus
 
-from aiohttp_apispec import response_schema
 from aiohttp_session import new_session
 
 from app.admin.mixins import AuthRequiredMixin

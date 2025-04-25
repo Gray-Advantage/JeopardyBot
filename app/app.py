@@ -3,7 +3,6 @@ from aiohttp.web import (
     Request as AiohttpRequest,
     View as AiohttpView,
 )
-from aiohttp_session import setup as setup_session
 
 from app.admin.models import AdminModel
 from app.admin.routes import setup_routes

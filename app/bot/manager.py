@@ -1,7 +1,7 @@
 import asyncio
 import json
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal
 
 import aiohttp
 from aio_pika.abc import AbstractIncomingMessage
@@ -25,18 +25,26 @@ class TelegramBotManager:
         self._callback_handlers: list[
             tuple[str | None, Callable[[CallbackQuery], Awaitable[None]]]
         ] = []
+        self.rabbit_output: RabbitMQManager | None = None
 
     def build_method_url(self, method_name: str) -> str:
         return f"{self._base_url}{self._token}/{method_name}"
 
     async def _mainloop(self) -> None:
         await self.connect()
-        rabbit = RabbitMQManager(
+        rabbit_input = RabbitMQManager(
             amqp_url=self.app.config.rabbitmq.url,
             queue_name=self.app.config.rabbitmq.input_queue,
         )
-        await rabbit.connect()
-        await rabbit.consume(self.get_update)
+        self.rabbit_output = RabbitMQManager(
+            amqp_url=self.app.config.rabbitmq.url,
+            queue_name=self.app.config.rabbitmq.output_queue,
+        )
+
+        await rabbit_input.connect()
+        await self.rabbit_output.connect()
+
+        await rabbit_input.consume(self.get_update)
 
         await asyncio.Event().wait()
 
@@ -50,15 +58,20 @@ class TelegramBotManager:
         if self._session:
             await self._session.close()
 
-    async def _post(self, method: str, json: dict[str, Any]) -> dict[Any, Any]:
+    async def _post(self, method: str, json_: dict[str, Any]) -> None:
         if self._session is None:
             raise RuntimeError("TelegramBotManager is not connected")
+        if self.rabbit_output is None:
+            raise RuntimeError("RabitMQ is not connected")
 
-        async with self._session.post(self.build_method_url(method), json=json) as resp:
-            response_data: dict[str, Any] = await resp.json()
-            if not response_data.get("ok"):
-                raise RuntimeError(f"Telegram API error: {response_data}")
-            return cast(dict[Any, Any], response_data["result"])
+        await self.rabbit_output.send(
+            json.dumps(
+                {
+                    "method": self.build_method_url(method),
+                    "data": json_,
+                },
+            ).encode()
+        )
 
     async def get_update(self, msg: AbstractIncomingMessage) -> None:
         async with msg.process():
@@ -125,7 +138,7 @@ class TelegramBotManager:
         keyboard: list[list[tuple[str, str]]] | None = None,
         parse_mode: Literal["MarkdownV2", "HTML", "Markdown"] | None = None,
         reply_to_message_id: int | None = None,
-    ) -> dict[Any, Any]:
+    ) -> None:
         json_data = {
             "chat_id": chat.id,
             "text": str(text),
@@ -144,14 +157,14 @@ class TelegramBotManager:
         if reply_to_message_id is not None:
             json_data["reply_parameters"] = {"message_id": reply_to_message_id}
 
-        return await self._post("sendMessage", json=json_data)
+        await self._post("sendMessage", json_=json_data)
 
     async def answer_callback_query(
         self,
         callback_query: CallbackQuery,
         text: str = "",
         show_alert: bool = False,
-    ) -> dict[Any, Any]:
+    ) -> None:
         payload = {
             "callback_query_id": callback_query.id,
             "text": text,
@@ -161,7 +174,7 @@ class TelegramBotManager:
         if not text:
             payload.pop("text")
 
-        return await self._post("answerCallbackQuery", json=payload)
+        await self._post("answerCallbackQuery", json_=payload)
 
     async def edit_message_text(
         self,
@@ -170,7 +183,7 @@ class TelegramBotManager:
         text: str,
         keyboard: list[list[tuple[str, str]]] | None = None,
         parse_mode: Literal["MarkdownV2", "HTML", "Markdown"] | None = None,
-    ) -> dict[Any, Any]:
+    ) -> None:
         payload: dict[str, Any] = {
             "chat_id": chat_id,
             "message_id": message_id,
@@ -187,7 +200,7 @@ class TelegramBotManager:
         if parse_mode is not None:
             payload["parse_mode"] = parse_mode
 
-        return await self._post("editMessageText", json=payload)
+        await self._post("editMessageText", json_=payload)
 
 
 def setup_bot_api(app: "Application") -> None:

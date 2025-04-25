@@ -57,6 +57,21 @@ services:
       - .env
     restart: always
 
+  sender:
+    build:
+      context: .
+      dockerfile: app/sender/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    restart: always
+
   bot:
     build:
       context: .
