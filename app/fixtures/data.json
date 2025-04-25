@@ -1,0 +1,224 @@
+[
+    {
+        "model": "theme",
+        "fields": {
+            "title": "Наука",
+            "id": 1
+        }
+    },
+    {
+        "model": "theme",
+        "fields": {
+            "title": "География",
+            "id": 2
+        }
+    },
+    {
+        "model": "theme",
+        "fields": {
+            "title": "Литература",
+            "id": 3
+        }
+    },
+    {
+        "model": "theme",
+        "fields": {
+            "title": "Кино",
+            "id": 4
+        }
+    },
+    {
+        "model": "theme",
+        "fields": {
+            "title": "Технологии",
+            "id": 5
+        }
+    },
+    {
+        "model": "theme",
+        "fields": {
+            "title": "Музыка",
+            "id": 6
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Какой химический элемент обозначается символом \"O\"?",
+            "answer": "Кислород",
+            "hard_level": 1,
+            "theme_id": 1,
+            "id": 1
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Как называется наука, изучающая строение и свойства вещества?",
+            "answer": "Химия",
+            "hard_level": 2,
+            "theme_id": 1,
+            "id": 2
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Какой физик впервые сформулировал три закона движения?",
+            "answer": "Исаак Ньютон",
+            "hard_level": 3,
+            "theme_id": 1,
+            "id": 3
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Как называется самая большая страна в мире по площади?",
+            "answer": "Россия",
+            "hard_level": 1,
+            "theme_id": 2,
+            "id": 4
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Через какие два континента проходит Турция?",
+            "answer": "Азия и Европа",
+            "hard_level": 2,
+            "theme_id": 2,
+            "id": 5
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Какое море не имеет выхода к океану и полностью окружено сушей?",
+            "answer": "Каспийское море",
+            "hard_level": 3,
+            "theme_id": 2,
+            "id": 6
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Кто написал роман \"Война и мир\"?",
+            "answer": "Лев Толстой",
+            "hard_level": 1,
+            "theme_id": 3,
+            "id": 7
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Как называется произведение, начинающееся строкой: \"У лукоморья дуб зелёный...\"?",
+            "answer": "\"Руслан и Людмила\" — А.С. Пушкин",
+            "hard_level": 2,
+            "theme_id": 3,
+            "id": 8
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Кто автор романа \"Преступление и наказание\"?",
+            "answer": "Фёдор Достоевский",
+            "hard_level": 3,
+            "theme_id": 3,
+            "id": 9
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Как зовут волшебника, наставника Гарри Поттера?",
+            "answer": "Альбус Дамблдор",
+            "hard_level": 1,
+            "theme_id": 4,
+            "id": 10
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Какой фильм получил «Оскар» за лучший фильм в 1997 году и рассказывал о затонувшем лайнере?",
+            "answer": "Титаник",
+            "hard_level": 2,
+            "theme_id": 4,
+            "id": 11
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Кто сыграл главную роль в фильме \"Начало\" (Inception)?",
+            "answer": "Леонардо Ди Каприо",
+            "hard_level": 3,
+            "theme_id": 4,
+            "id": 12
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Что означает сокращение \"USB\"?",
+            "answer": "Universal Serial Bus",
+            "hard_level": 1,
+            "theme_id": 5,
+            "id": 13
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Как называется самая популярная операционная система от Microsoft?",
+            "answer": "Windows",
+            "hard_level": 2,
+            "theme_id": 5,
+            "id": 14
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Какой алгоритм хэширования используется в блокчейне Bitcoin?",
+            "answer": "SHA-256",
+            "hard_level": 3,
+            "theme_id": 5,
+            "id": 15
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": " Сколько струн у стандартной гитары?",
+            "answer": "Шесть",
+            "hard_level": 1,
+            "theme_id": 6,
+            "id": 16
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Какой композитор написал «Лунную сонату»?",
+            "answer": "Людвиг ван Бетховен",
+            "hard_level": 2,
+            "theme_id": 6,
+            "id": 17
+        }
+    },
+    {
+        "model": "question",
+        "fields": {
+            "text": "Как называется музыкальный стиль, зародившийся в США в 1970-х и характеризующийся рифмованным речитативом под бит?",
+            "answer": "Хип-хоп",
+            "hard_level": 3,
+            "theme_id": 6,
+            "id": 18
+        }
+    }
+]

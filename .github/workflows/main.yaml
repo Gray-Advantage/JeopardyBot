@@ -1,13 +1,37 @@
-name: Check homework
+name: Check Project
+
 on: [push]
+
 jobs:
-  lint:
+  ruff:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: 3.12
-      - name: Install ruff
-        run: pip install ruff==0.4.2
-      - run: ruff format --check && ruff check --no-fix
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Install dependencies
+        run: uv pip install --system -r requirements.txt
+      - name: Check by ruff
+        run: ruff check .
+
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Install dependencies
+        run: uv pip install --system -r requirements.txt
+      - name: Check by mypy
+        run: mypy .
+
