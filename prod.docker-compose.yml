@@ -65,9 +65,9 @@ services:
     restart: always
 
   admin:
-    build:
-      context: .
-      dockerfile: grayadvantage/jeopardy-admin:latest
+    image: grayadvantage/jeopardy-admin:latest
+    ports:
+      - "80:8080"
     depends_on:
       postgres:
         condition: service_healthy
