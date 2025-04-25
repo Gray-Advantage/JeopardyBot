@@ -94,6 +94,7 @@ extend-select = [
 # По мере "бесячих" ошибок буду дополнять, а так, всё строго
 extend-ignore = [
     "D1",
+    "CPY001",
     # По рекомендации https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
@@ -117,6 +118,7 @@ extend-ignore = [
 "urls.py" = ["PLC0415"]
 "store.py" = ["PLC0415"]
 "tests/*.py" = ["SIM300", "F403", "F405", "INP001"]
+"*/versions/*.py" = ["D415", "INP001"]
 
 
 [tool.ruff.lint.pydocstyle]
