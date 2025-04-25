@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine.url import URL
 
 if typing.TYPE_CHECKING:
-    from app.app.app import Application
+    from app.app import Application
 
 
 class BotConfig(BaseModel):
@@ -32,12 +32,27 @@ class DatabaseConfig(BaseModel):
         )
 
 
+class RabbitmqConfig(BaseModel):
+    host: str = "localhost"
+    port: int = 5672
+    user: str = "guest"
+    password: str = "guest"
+    input_queue: str = "input_queue"
+    output_queue: str = "output_queue"
+
+    @cached_property
+    def url(self) -> str:
+        return f"amqp://{self.user}:{self.password}@{self.host}:{self.port}"
+
+
 class Config(BaseSettings):
-    bot: BotConfig | None = None
-    database: DatabaseConfig | None = None
+    bot: BotConfig
+    database: DatabaseConfig
+    rabbitmq: RabbitmqConfig
 
     model_config = SettingsConfigDict(
-        env_file=(".env", "../../../../.env"),  # Если main / если миграции
+        # Если main / если poller / если миграции
+        env_file=(".env", "../../.env", "../../../../.env"),
         env_nested_delimiter="__",
     )
 

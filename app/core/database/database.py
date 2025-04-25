@@ -12,7 +12,7 @@ from sqlalchemy.orm import DeclarativeBase
 from app.core.database.sqlalchemy_base import BaseModel
 
 if TYPE_CHECKING:
-    from app.app.app import Application
+    from app.app import Application
 
 
 class Database:

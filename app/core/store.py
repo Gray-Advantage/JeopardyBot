@@ -1,7 +1,7 @@
 import typing
 
 if typing.TYPE_CHECKING:
-    from app.app.app import Application
+    from app.app import Application
 
 
 class Store:  # noqa: B903

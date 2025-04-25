@@ -14,4 +14,35 @@ services:
       interval: 2s
       timeout: 5s
       retries: 10
+    restart: always
     command: -p ${DATABASE__PORT}
+
+  rabbitmq:
+    image: rabbitmq:4.0.8-management-alpine  # временно
+    ports:
+      - ${RABBITMQ__PORT}:${RABBITMQ__PORT}
+      - 15672:15672  # временно
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ__USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ__PASSWORD}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+  poller:
+    build:
+      context: .
+      dockerfile: app/poller/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - .env
+    restart: always
