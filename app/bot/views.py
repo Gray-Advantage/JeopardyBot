@@ -79,7 +79,7 @@ async def summarize_the_results(chat: Chat, game_id: int) -> None:
     )
 
 
-@bot.connect_handler(commands=["start"])
+@bot.connect_handler(commands=["start", "приветик"])
 async def start(message: Message) -> None:
     if message.chat.type == "private":
         await bot.send_message(
@@ -104,7 +104,7 @@ async def start(message: Message) -> None:
     )
 
 
-@bot.connect_handler(commands=["stop"])
+@bot.connect_handler(commands=["stop", "пакетик"])
 async def stop(message: Message) -> None:
     game = await app.accessors.game_accessor.get_active_game(message.chat)
     if game is None:

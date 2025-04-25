@@ -9,4 +9,4 @@ ENV PATH="/project/.venv/bin:$PATH"
 
 COPY . .
 
-CMD python -m app.bot.views
+CMD python -m app.admin.main

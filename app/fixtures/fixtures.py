@@ -14,6 +14,7 @@ from typing import Any
 
 import aiofiles
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from typing_extensions import TypedDict
 
 from app.app import setup_app
@@ -220,4 +221,8 @@ if __name__ == "__main__":
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    asyncio.run(main())
+
+    try:
+        asyncio.run(main())
+    except IntegrityError:
+        sys.exit(0)

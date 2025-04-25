@@ -18,10 +18,7 @@ services:
     command: -p ${DATABASE__PORT}
 
   rabbitmq:
-    image: rabbitmq:4.0.8-management-alpine  # временно
-    ports:
-      - ${RABBITMQ__PORT}:${RABBITMQ__PORT}
-      - 15672:15672  # временно
+    image: rabbitmq:4.0.8-alpine
     env_file:
       - .env
     environment:
@@ -34,6 +31,17 @@ services:
       retries: 10
     restart: always
 
+  migrator:
+    build:
+      context: .
+      dockerfile: app/admin/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    command: sh -c "alembic upgrade head && python -m app.fixtures.fixtures load ./app/fixtures/data.json"
+
   poller:
     build:
       context: .
@@ -43,19 +51,38 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     env_file:
       - .env
     restart: always
 
-#  worker:
-#    build:
-#      context: .
-#      dockerfile: app/bot/Dockerfile
-#    depends_on:
-#      postgres:
-#        condition: service_healthy
-#      rabbitmq:
-#        condition: service_healthy
-#    env_file:
-#      - .env
-#    restart: always
+  bot:
+    build:
+      context: .
+      dockerfile: app/bot/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    restart: always
+
+  admin:
+    build:
+      context: .
+      dockerfile: app/admin/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    restart: always
