@@ -113,10 +113,7 @@ async def stop(message: Message) -> None:
     await app.accessors.game_accessor.complete(game)
 
     if game.master_id == message.from_.id:
-        await bot.send_message(
-            message.chat,
-            "Игра завершена досрочно"
-        )
+        await bot.send_message(message.chat, "Игра завершена досрочно")
 
 
 @bot.connect_callback_handler("start_game")
@@ -134,9 +131,17 @@ async def start_game_handler(call: CallbackQuery) -> None:
             show_alert=True,
         )
         return
-    await bot.answer_callback_query(call)
-    await app.accessors.game_accessor.next_round(call.message.chat)
+
     users = await app.accessors.game_accessor.all_users(call.message.chat)
+    if len(users) == 0:
+        await bot.answer_callback_query(
+            call,
+            "Нужен хотя бы один игрок",
+            show_alert=True,
+        )
+        return
+
+    await app.accessors.game_accessor.next_round(call.message.chat)
     user = await app.accessors.game_accessor.set_choice_user(
         call.message.chat,
         choice(users),
