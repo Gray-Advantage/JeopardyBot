@@ -1,0 +1,49 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+    - name: Build and Push bot
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/jeopardy-bot:latest -f app/bot/Dockerfile .
+        docker push ${{ secrets.DOCKER_USERNAME }}/jeopardy-bot:latest
+
+    - name: Build and Push admin
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/jeopardy-admin:latest -f app/admin/Dockerfile .
+        docker push ${{ secrets.DOCKER_USERNAME }}/jeopardy-admin:latest
+
+    - name: Build and Push poller
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/jeopardy-poller:latest -f app/poller/Dockerfile .
+        docker push ${{ secrets.DOCKER_USERNAME }}/jeopardy-poller:latest
+
+    - name: Build and Push migrator
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/jeopardy-migrator:latest -f app/admin/Dockerfile .
+        docker push ${{ secrets.DOCKER_USERNAME }}/jeopardy-migrator:latest
+
+    - name: Deploy on remote VPS
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.DEPLOY_KEY }}
+        script: |
+          cd jeopardybot
+          git pull
+          docker-compose -f prod.docker-compose.yml pull
+          docker-compose -f prod.docker-compose.yml up -d
